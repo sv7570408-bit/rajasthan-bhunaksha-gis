@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="GeoKhet - Rajasthan GIS Mapping App for Bhunaksha Overlay">
+    <title>GeoKhet | Bawarla, Sanchor, Jalore</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0d2e2a;
+            --dark-green: #163c37;
+            --panel-green: #dfeee5;
+            --panel-soft: #f4f7f4;
+            --text-main: #173f3d;
+            --text-muted: #617d79;
+            --teal: #0d6a5c;
+            --teal-strong: #197861;
+            --line: rgba(23, 63, 61, 0.18);
+            --shadow: rgba(10, 31, 32, 0.18);
+            --button-green: #0d5763;
+            --gold: #e3b866;
+            --green-pill: #12a88e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #dfe5e3;
+            overflow: hidden;
+        }
+
+        .phone-frame {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background: #f0f0f0;
+            overflow: hidden;
+        }
+
+        .status-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 15;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            background: linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.05));
+        }
+
+        .status-left {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .status-right {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .map-app {
+            position: absolute;
+            top: 44px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: calc(100% - 44px);
+            background: #d9d5d0;
+        }
+
+        .top-toolbar {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 12;
+        }
+
+        .icon-button {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(18, 39, 32, 0.5);
+            color: white;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            flex-shrink: 0;
+        }
+
+        .title-block {
+            flex: 1;
+            color: #f2f2f2;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        }
+
+        .title-block h1 {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin: 0;
+            line-height: 1;
+        }
+
+        .title-block p {
+            font-size: 13px;
+            color: rgba(255,255,255,0.85);
+            margin: 2px 0 0;
+            font-weight: 400;
+        }
+
+        .map-region {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+        }
+
+        #leaflet-map {
+            width: 100% !important;
+            height: 100% !important;
+            filter: saturate(0.88) contrast(1.02) brightness(0.88);
+        }
+
+        .map-floating-ui {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 11;
+        }
+
+        .location-tag {
+            position: absolute;
+            left: 12px;
+            bottom: 200px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            background: rgba(255,255,255,0.5);
+            padding: 8px 10px;
+            border-radius: 18px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+            backdrop-filter: blur(3px);
+            pointer-events: auto;
+        }
+
+        .location-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #0b85dc;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .location-label {
+            color: #0b2d2a;
+            display: flex;
+            flex-direction: column;
+            font-size: 13px;
+        }
+
+        .location-label strong {
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .location-label span {
+            font-size: 11px;
+        }
+
+        .right-controls {
+            position: absolute;
+            right: 12px;
+            top: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: auto;
+            z-index: 11;
+        }
+
+        .layer-control {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.9);
+            color: var(--text-main);
+            font-size: 28px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bottom-panel {
+            position: absolute;
+            left: 50%;
+            bottom: 20px;
+            transform: translateX(-50%);
+            width: 85%;
+            max-width: 320px;
+            z-index: 14;
+        }
+
+        .create-button {
+            width: 100%;
+            background: linear-gradient(180deg, rgba(22, 69, 62, 0.95), rgba(15, 60, 57, 0.95));
+            color: white;
+            border-radius: 16px;
+            padding: 18px 16px;
+            font-size: 16px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(7, 45, 41, 0.25);
+        }
+
+        .plus {
+            font-size: 24px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .bottom-sheet {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 20;
+            border-radius: 28px 28px 0 0;
+            background: rgba(236, 241, 236, 0.98);
+            border-top: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 -8px 24px rgba(0,0,0,0.1);
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 16px 16px 24px;
+            display: none;
+        }
+
+        .bottom-sheet.active {
+            display: block;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .sheet-top-line {
+            margin: 0 auto 12px;
+            width: 60px;
+            height: 4px;
+            border-radius: 999px;
+            background: rgba(12, 48, 42, 0.2);
+        }
+
+        .sheet-header {
+            margin-bottom: 16px;
+        }
+
+        .eyebrow {
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-size: 12px;
+            color: var(--teal-strong);
+            font-weight: 700;
+            margin: 0 0 8px;
+        }
+
+        .sheet-header h2 {
+            margin: 0;
+            color: var(--text-main);
+            font-size: 28px;
+            line-height: 1.1;
+            letter-spacing: -0.04em;
+            font-weight: 800;
+        }
+
+        .sheet-header p {
+            margin: 8px 0 0;
+            color: var(--text-main);
+            font-size: 15px;
+            line-height: 1.4;
+            font-weight: 500;
+        }
+
+        .option-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 16px 0;
+        }
+
+        .option-item {
+            width: 100%;
+            background: rgba(255,255,255,0.15);
+            border-radius: 16px;
+            border: 1px solid rgba(23, 63, 61, 0.1);
+            padding: 14px 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            color: var(--text-main);
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option-item:active {
+            background: rgba(255,255,255,0.25);
+            box-shadow: inset 0 0 0 1px rgba(17, 69, 58, 0.15);
+        }
+
+        .option-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: #edd9ad;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.03);
+            flex-shrink: 0;
+        }
+
+        .option-icon.sage {
+            background: #d7e5d7;
+        }
+
+        .option-icon.green {
+            background: #d6e7d8;
+        }
+
+        .option-copy {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .option-title-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .option-title {
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        .option-copy span {
+            font-size: 13px;
+            line-height: 1.35;
+            font-weight: 500;
+            color: rgba(23, 63, 61, 0.85);
+        }
+
+        .mini-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: rgba(13, 96, 85, 0.14);
+            color: var(--dark-green);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .method-card {
+            width: 100%;
+            background: rgba(255,255,255,0.18);
+            border-radius: 18px;
+            border: 1px solid rgba(17, 69, 58, 0.12);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-align: left;
+            color: var(--text-main);
+            cursor: pointer;
+            border: none;
+            margin: 12px 0;
+            transition: all 0.2s;
+        }
+
+        .method-card:active {
+            background: rgba(255,255,255,0.28);
+        }
+
+        .method-card h3 {
+            margin: 0 0 6px;
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        .method-card span {
+            font-size: 13px;
+            line-height: 1.35;
+            color: rgba(23, 63, 61, 0.8);
+        }
+
+        .method-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: rgba(39, 121, 109, 0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: var(--text-main);
+            flex-shrink: 0;
+        }
+
+        .method-card.premium {
+            background: rgba(219, 237, 223, 0.55);
+        }
+
+        .inline-badges {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 6px 0;
+            flex-wrap: wrap;
+        }
+
+        .mini-badge.premium-pill {
+            background: rgba(227, 184, 102, 0.24);
+            color: #947129;
+        }
+
+        .mini-badge.success {
+            background: rgba(19, 168, 142, 0.14);
+            color: #116b4a;
+        }
+
+        .cancel-btn {
+            width: 100%;
+            margin-top: 10px;
+            background: rgba(255,255,255,0.25);
+            border: 1px solid rgba(22, 60, 55, 0.15);
+            border-radius: 16px;
+            padding: 16px;
+            color: var(--dark-green);
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .cancel-btn:active {
+            background: rgba(255,255,255,0.35);
+        }
+
+        .arrow {
+            margin-left: auto;
+            font-size: 24px;
+            color: rgba(23, 63, 61, 0.6);
+            flex-shrink: 0;
+        }
+
+        .capture-card {
+            width: 100%;
+            background: rgba(255,255,255,0.18);
+            border-radius: 18px;
+            border: 1px solid rgba(17, 69, 58, 0.12);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-align: left;
+            color: var(--text-main);
+            cursor: pointer;
+            border: none;
+            margin: 12px 0;
+            transition: all 0.2s;
+        }
+
+        .capture-card:active {
+            background: rgba(255,255,255,0.28);
+        }
+
+        .capture-card h3 {
+            margin: 0 0 6px;
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        .capture-card span {
+            font-size: 13px;
+            line-height: 1.35;
+            color: rgba(23, 63, 61, 0.8);
+        }
+
+        .capture-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: rgba(39, 121, 109, 0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: var(--text-main);
+            flex-shrink: 0;
+        }
+
+        .capture-card.dim {
+            background: rgba(255,255,255,0.08);
+        }
+
+        .leaflet-popup-content-wrapper {
+            background: rgba(23, 63, 61, 0.95) !important;
+            border-radius: 12px !important;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2) !important;
+        }
+
+        .leaflet-popup-content {
+            color: white !important;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .leaflet-popup-tip {
+            background: rgba(23, 63, 61, 0.95) !important;
+        }
+
+        @media (max-height: 600px) {
+            .bottom-sheet {
+                max-height: 90vh;
+            }
+
+            .sheet-header h2 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <div class="status-bar">
+            <div class="status-left">
+                <span>4:07</span>
+            </div>
+            <div style="flex: 1; text-align: center;">
+                <span style="background: rgba(24, 32, 39, 0.8); padding: 4px 12px; border-radius: 999px; font-size: 12px;">1 device</span>
+            </div>
+            <div class="status-right">
+                <span>4G+</span>
+                <span style="width: 18px; height: 10px; border: 1.5px solid white; border-radius: 2px; position: relative;">
+                    <span style="position: absolute; right: -3px; top: 2px; width: 1.5px; height: 4px; background: white; border-radius: 1px;"></span>
+                </span>
+            </div>
+        </div>
+
+        <main class="map-app">
+            <div class="top-toolbar">
+                <button class="icon-button menu-btn" onclick="alert('Menu Button')">☰</button>
+                <div class="title-block">
+                    <h1>GeoKhet</h1>
+                    <p>Satellite map viewer</p>
+                </div>
+                <button class="icon-button" onclick="alert('Checked')">✓</button>
+            </div>
+
+            <div class="map-region">
+                <div id="leaflet-map"></div>
+
+                <div class="map-floating-ui">
+                    <div class="location-tag">
+                        <div class="location-icon">⊙</div>
+                        <div class="location-label">
+                            <strong>बावरला</strong>
+                            <span>Bawarla</span>
+                        </div>
+                    </div>
+
+                    <div class="right-controls">
+                        <button class="layer-control" onclick="alert('Layers')">≡</button>
+                        <button class="layer-control" onclick="alert('Compass')">⊕</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bottom-panel" id="homePanel">
+                <button class="create-button" onclick="showSourcePanel()">
+                    <span class="plus">+</span> Create New
+                </button>
+            </div>
+
+            <!-- Source Selection Sheet -->
+            <div class="bottom-sheet" id="sourceSheet">
+                <div class="sheet-top-line"></div>
+                <div class="sheet-header">
+                    <p class="eyebrow">विकल्प चुनें</p>
+                    <h2>Custom Layer जोड़ें</h2>
+                    <p>WMS service, image/PDF, website capture, या camera photo add करें।</p>
+                </div>
+
+                <div class="option-list">
+                    <button class="option-item" onclick="alert('WMS Link - Coming Soon')">
+                        <div class="option-icon">▢</div>
+                        <div class="option-copy">
+                            <div class="option-title">WMS link</div>
+                            <span>एक WMS map service को URL से connect करें।</span>
+                        </div>
+                    </button>
+
+                    <button class="option-item" onclick="alert('Image/PDF - Coming Soon')">
+                        <div class="option-icon" style="background: #d7e5d7;">🖼</div>
+                        <div class="option-copy">
+                            <div class="option-title">Image / PDF</div>
+                            <span>अपने device से JPG, PNG, या PDF चुनें।</span>
+                        </div>
+                    </button>
+
+                    <button class="option-item" onclick="showWebsiteMethodPanel()">
+                        <div class="option-icon" style="background: #d6e7d8;">🌐</div>
+                        <div class="option-copy">
+                            <div class="option-title">
+                                Website Overlay
+                                <span class="mini-badge">सबसे उपयोगी</span>
+                                <span class="mini-badge">राजस्थान</span>
+                            </div>
+                            <span>एक map website को खोलें और screenshot लें।</span>
+                        </div>
+                    </button>
+
+                    <button class="option-item" onclick="showWebsiteMethodPanel()">
+                        <div class="option-icon" style="background: #d7e5d7;">🗺</div>
+                        <div class="option-copy">
+                            <div class="option-title">
+                                Bhunaksha Overlay
+                                <span class="mini-badge">सबसे उपयोगी</span>
+                                <span class="mini-badge">राजस्थान</span>
+                            </div>
+                            <span>राज्य portal से Bhunaksha nakshe add करें।</span>
+                        </div>
+                    </button>
+
+                    <button class="option-item" onclick="alert('Camera - Coming Soon')">
+                        <div class="option-icon">📷</div>
+                        <div class="option-copy">
+                            <div class="option-title">Camera</div>
+                            <span>फोटो लें और overlay के रूप में add करें।</span>
+                        </div>
+                    </button>
+                </div>
+
+                <button class="cancel-btn" onclick="hideAllSheets()">रद्द करें</button>
+            </div>
+
+            <!-- Website Method Sheet -->
+            <div class="bottom-sheet" id="websiteMethodSheet">
+                <div class="sheet-top-line"></div>
+                <div class="sheet-header">
+                    <h2>Website Overlay</h2>
+                    <p>Manual alignment चुनें या Bhunaksha points से automatic placement करें।</p>
+                </div>
+
+                <button class="method-card" onclick="showCaptureTypePanel()">
+                    <div class="method-icon">✎</div>
+                    <div>
+                        <h3>Manual Overlay</h3>
+                        <span>अपने से image को align करें।</span>
+                    </div>
+                    <div class="arrow">›</div>
+                </button>
+
+                <button class="method-card premium" onclick="showCaptureTypePanel()">
+                    <div class="method-icon">✦</div>
+                    <div>
+                        <h3>Auto Overlay</h3>
+                        <div class="inline-badges">
+                            <span class="mini-badge">AI</span>
+                            <span class="mini-badge premium-pill">PREMIUM</span>
+                            <span class="mini-badge success">11 NOV तक FREE</span>
+                        </div>
+                        <span>11 Nov 2026 तक promotional access free है।</span>
+                    </div>
+                    <div class="arrow">›</div>
+                </button>
+
+                <button class="cancel-btn" onclick="hideAllSheets()">रद्द करें</button>
+            </div>
+
+            <!-- Capture Type Sheet -->
+            <div class="bottom-sheet" id="captureTypeSheet">
+                <div class="sheet-top-line"></div>
+                <div class="sheet-header">
+                    <h2>Capture Type चुनें</h2>
+                    <p>पूरा website screenshot लें या सिर्फ cadastral drawing निकालें।</p>
+                </div>
+
+                <button class="capture-card" onclick="alert('Image Capture - Ready!')">
+                    <div class="capture-icon">🖼</div>
+                    <div>
+                        <h3>Add Image</h3>
+                        <span>पूरा screenshot सभी controls के साथ।</span>
+                    </div>
+                    <div class="arrow">›</div>
+                </button>
+
+                <button class="capture-card dim" onclick="alert('Draw Capture - Coming Soon')">
+                    <div class="capture-icon">▭</div>
+                    <div>
+                        <h3>Add Draw</h3>
+                        <span>सिर्फ parcel lines और plot numbers निकालें।</span>
+                    </div>
+                    <div class="arrow">›</div>
+                </button>
+
+                <button class="cancel-btn" onclick="hideAllSheets()">रद्द करें</button>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Map Configuration
+        const bawarlaCoords = [25.3526, 71.3045];
+        const villageBoundary = [
+            [25.359, 71.282],
+            [25.349, 71.271],
+            [25.336, 71.292],
+            [25.341, 71.310],
+            [25.355, 71.318],
+            [25.367, 71.301],
+            [25.359, 71.282],
+        ];
+
+        // Initialize map
+        let map = L.map('leaflet-map', {
+            center: bawarlaCoords,
+            zoom: 15,
+            minZoom: 10,
+            maxZoom: 20,
+            scrollWheelZoom: true,
+            zoomControl: false,
+            attributionControl: false
+        });
+
+        // Add satellite tiles
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: ''
+        }).addTo(map);
+
+        // Add village boundary
+        L.polygon(villageBoundary, {
+            color: '#0a4d8f',
+            weight: 2,
+            opacity: 0.9,
+            fillColor: '#2d6aa9',
+            fillOpacity: 0.12
+        }).addTo(map);
+
+        // Add marker
+        L.circleMarker(bawarlaCoords, {
+            radius: 12,
+            color: '#1a7bd8',
+            weight: 3,
+            opacity: 1,
+            fillOpacity: 1,
+            fillColor: '#1a7bd8'
+        }).bindPopup('बावरला | Bawarla').addTo(map);
+
+        // Sheet functions
+        function showSourcePanel() {
+            hideAllSheets();
+            document.getElementById('sourceSheet').classList.add('active');
+        }
+
+        function showWebsiteMethodPanel() {
+            hideAllSheets();
+            document.getElementById('websiteMethodSheet').classList.add('active');
+        }
+
+        function showCaptureTypePanel() {
+            hideAllSheets();
+            document.getElementById('captureTypeSheet').classList.add('active');
+        }
+
+        function hideAllSheets() {
+            document.querySelectorAll('.bottom-sheet').forEach(sheet => {
+                sheet.classList.remove('active');
+            });
+        }
+
+        // Close sheets on background tap
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') hideAllSheets();
+        });
+    </script>
+</body>
+</html>
