@@ -1,2 +1,6 @@
-# rajasthan-bhunaksha-gis
-A Web-based GIS application for Rajasthan cadastral mapping with Bhunaksha overlay, satellite imagery, and custom layer support
+node_modules/
+dist/
+.vite/
+.env
+.DS_Store
+npm-debug.log*
