@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ZonaMap — App Store Style</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f4f4f4;
+      --text: #1b1b1b;
+      --muted: #737373;
+      --soft: #ebebeb;
+      --stroke: rgba(18, 18, 18, 0.12);
+      --primary: #1a73e8;
+      --dark: #20262b;
+      --dark2: #0f1012;
+      --green: #3ddc84;
+      --green2: #25b978;
+      --chip: #eef6ff;
+      --shadow: rgba(0, 0, 0, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      font-family: 'Inter', sans-serif;
+      background: #dfe3e3;
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .phone {
+      width: 100vw;
+      height: 100vh;
+      max-width: 500px;
+      background: #f3f3f4;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .statusbar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      font-size: 13px;
+      font-weight: 700;
+      background: rgba(255,255,255,0.1);
+      z-index: 20;
+      color: #1a1a1a;
+    }
+
+    .status-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .signal {
+      display: flex;
+      align-items: end;
+      gap: 2px;
+      height: 14px;
+    }
+
+    .signal span {
+      width: 3px;
+      border-radius: 2px;
+      background: #1a1a1a;
+      display: block;
+    }
+
+    .signal span:nth-child(1) { height: 4px; }
+    .signal span:nth-child(2) { height: 7px; }
+    .signal span:nth-child(3) { height: 10px; }
+    .signal span:nth-child(4) { height: 13px; }
+
+    .battery {
+      width: 26px;
+      height: 12px;
+      border: 2px solid #1a1a1a;
+      border-radius: 3px;
+      position: relative;
+      display: inline-block;
+    }
+
+    .battery::after {
+      content: "";
+      position: absolute;
+      right: -5px;
+      top: 2px;
+      width: 2px;
+      height: 6px;
+      background: #1a1a1a;
+      border-radius: 2px;
+    }
+
+    .battery::before {
+      content: "";
+      position: absolute;
+      inset: 2px 2px 2px 2px;
+      background: #1a1a1a;
+      border-radius: 1px;
+    }
+
+    .content {
+      position: absolute;
+      inset: 54px 0 0 0;
+      overflow-y: auto;
+      padding-bottom: 80px;
+      background: var(--bg);
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 18px 10px;
+      position: sticky;
+      top: 0;
+      background: rgba(244,244,244,0.88);
+      backdrop-filter: blur(8px);
+      z-index: 10;
+    }
+
+    .arrow-back {
+      font-size: 30px;
+      color: #111;
+      line-height: 1;
+      font-weight: 300;
+    }
+
+    .more {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+
+    .app-header {
+      padding: 18px 18px 12px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .app-icon {
+      width: 106px;
+      height: 106px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #41d297, #17b77b);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.18), 0 8px 22px rgba(10, 120, 90, 0.16);
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .app-icon::before,
+    .app-icon::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.9);
+      opacity: 0.9;
+    }
+
+    .app-icon::before {
+      width: 68px;
+      height: 68px;
+      left: 18px;
+      top: 18px;
+      box-shadow: 0 0 0 14px rgba(255,255,255,0.12);
+    }
+
+    .app-icon::after {
+      width: 18px;
+      height: 18px;
+      left: 18px;
+      top: 40px;
+      background: #d0f7e9;
+      box-shadow: 12px 18px 0 6px rgba(255,255,255,0.9), -8px 6px 0 8px rgba(255,255,255,0.75);
+    }
+
+    .app-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .app-title {
+      font-size: clamp(2.1rem, 6vw, 3.7rem);
+      font-weight: 700;
+      line-height: 0.95;
+      letter-spacing: -0.07em;
+      margin: 0;
+      color: #111;
+    }
+
+    .app-sub {
+      margin-top: 10px;
+      font-size: 16px;
+      color: #4d5b60;
+      font-weight: 600;
+    }
+
+    .app-sub strong {
+      color: #1a466d;
+      font-weight: 800;
+    }
+
+    .rating-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 18px 12px;
+      gap: 18px;
+      color: #1c1c1c;
+    }
+
+    .stars {
+      font-size: 18px;
+      color: #1d1d1d;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .stars span {
+      color: #111;
+    }
+
+    .rating-box {
+      flex: 1;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .rating-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 18px;
+      font-weight: 700;
+      border-radius: 12px;
+      padding: 8px 10px;
+      background: transparent;
+    }
+
+    .install-btn {
+      margin: 8px 18px 16px;
+      width: calc(100% - 36px);
+      background: linear-gradient(180deg, #1a73df, #0b61d6);
+      border: none;
+      border-radius: 16px;
+      color: white;
+      font-size: 26px;
+      font-weight: 700;
+      height: 64px;
+      box-shadow: 0 8px 20px rgba(29, 98, 205, 0.22);
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      padding: 8px 18px 8px;
+    }
+
+    .feature-card {
+      background: #0d1215;
+      border-radius: 22px;
+      min-height: 260px;
+      overflow: hidden;
+      box-shadow: 0 12px 22px rgba(0,0,0,0.08);
+      border: 1px solid rgba(0,0,0,0.07);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+
+    .feature-card.dark {
+      background: #12181d;
+    }
+
+    .feature-card .heading-box {
+      flex: 0 0 auto;
+      padding: 18px 16px 10px;
+      font-size: 16px;
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+      color: #f4f4f4;
+      font-weight: 700;
+    }
+
+    .feature-card .small-copy {
+      font-size: 12px;
+      color: rgba(255,255,255,0.72);
+      line-height: 1.4;
+      font-weight: 500;
+      padding: 0 16px 10px;
+    }
+
+    .map-preview {
+      flex: 1;
+      background: linear-gradient(180deg, rgba(0,0,0,0.13), rgba(0,0,0,0.22)),
+                  linear-gradient(135deg, rgba(133, 180, 105, 0.3), rgba(74, 130, 92, 0.15));
+      position: relative;
+      overflow: hidden;
+    }
+
+    .map-lines {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(0deg, transparent 0 94%, rgba(232, 222, 101, 0.8) 94% 96%, transparent 96% 100%),
+        linear-gradient(90deg, transparent 0 92%, rgba(232, 222, 101, 0.8) 92% 96%, transparent 96% 100%),
+        linear-gradient(45deg, transparent 0 48%, rgba(190,209,176,0.35) 48% 52%, transparent 52% 100%);
+      background-size: 100% 100%, 100% 100%, 100% 100%;
+      opacity: 0.8;
+    }
+
+    .map-lines::before,
+    .map-lines::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(0deg, transparent 0 18px, rgba(255,255,255,0.1) 18px 19px),
+        repeating-linear-gradient(90deg, transparent 0 18px, rgba(255,255,255,0.09) 18px 19px);
+      opacity: 0.8;
+    }
+
+    .plot-box {
+      position: absolute;
+      inset: 18% 12% 18% 12%;
+      border: 2px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.03);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+    }
+
+    .plot-box::before,
+    .plot-box::after {
+      content: "";
+      position: absolute;
+      border: 2px solid rgba(255,255,255,0.14);
+    }
+
+    .plot-box::before {
+      inset: 14% 12% 12% 14%;
+    }
+
+    .plot-box::after {
+      inset: 22% 20% 20% 20%;
+    }
+
+    .measurement-preview {
+      flex: 1;
+      padding: 14px 10px 10px;
+      position: relative;
+      background: linear-gradient(180deg, rgba(0,0,0,0.2), rgba(0,0,0,0.28));
+      overflow: hidden;
+    }
+
+    .measurement-grid {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(0deg, transparent 0 92%, rgba(194, 210, 125, 0.9) 92% 94%, transparent 94% 100%),
+        linear-gradient(90deg, transparent 0 92%, rgba(194, 210, 125, 0.9) 92% 94%, transparent 94% 100%);
+      opacity: 0.75;
+    }
+
+    .measurement-dots {
+      position: absolute;
+      inset: 12% 8% 12% 8%;
+      background: radial-gradient(circle at 50% 50%, rgba(236, 233, 104, 0.9) 0 2px, transparent 2px 100%);
+      background-size: 18px 18px;
+      opacity: 0.75;
+    }
+
+    .ruler {
+      position: absolute;
+      width: 200px;
+      height: 2px;
+      background: rgba(0,0,0,0.55);
+      left: 32px;
+      top: 70px;
+      transform: rotate(25deg);
+    }
+
+    .ruler::before, .ruler::after {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      left: 0;
+      top: 0;
+      background: linear-gradient(90deg, transparent 0 8%, rgba(255,255,255,0.7) 8% 10%, transparent 10% 18%, rgba(255,255,255,0.7) 18% 20%, transparent 20% 100%);
+      background-size: 24px 100%;
+    }
+
+    .about {
+      margin-top: 12px;
+      padding: 26px 18px 18px;
+      border-top: 1px solid rgba(0,0,0,0.03);
+      background: rgba(255,255,255,0.1);
+    }
+
+    .about-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .about-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #111;
+      margin: 0;
+    }
+
+    .arrow-right {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.6);
+      border: 1px solid rgba(0,0,0,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      color: #111;
+      line-height: 1;
+      font-weight: 300;
+    }
+
+    .headline {
+      margin-top: 22px;
+      font-size: clamp(2.3rem, 7vw, 4.1rem);
+      line-height: 0.96;
+      letter-spacing: -0.07em;
+      color: #111;
+      font-weight: 700;
+    }
+
+    .app-icons {
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 0 10px;
+    }
+
+    .icon-item {
+      flex: 1;
+      text-align: center;
+      color: #2d2d2d;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .icon-box {
+      width: 62px;
+      height: 62px;
+      border-radius: 18px;
+      background: rgba(0,0,0,0.06);
+      margin: 0 auto 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      color: #111;
+    }
+
+    .icon-box.search {
+      background: linear-gradient(180deg, #dfeeff, #d2e5ff);
+    }
+
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 72px;
+      background: rgba(255,255,255,0.86);
+      border-top: 1px solid rgba(0,0,0,0.06);
+      display: flex;
+      align-items: center;
+      justify-content:space-between;
+      padding: 0 30px;
+      z-index: 25;
+    }
+
+    .nav-icon {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #111;
+      font-size: 28px;
+      opacity: 0.8;
+    }
+
+    .nav-icon.center {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: #eef3f5;
+      border: 1px solid rgba(0,0,0,0.06);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.45);
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    @media (max-width: 420px) {
+      .app-title { font-size: 2.5rem; }
+      .headline { font-size: 2.4rem; }
+      .install-btn { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="statusbar">
+      <div>6:45</div>
+      <div class="status-right">
+        <div class="signal">
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <div class="battery"></div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="header-row">
+        <div class="arrow-back">←</div>
+        <div class="more">⋮</div>
+      </div>
+
+      <div class="app-header">
+        <div class="app-icon"></div>
+        <div class="app-meta">
+          <h1 class="app-title">Zona</h1>
+          <div class="app-sub">Noble Mace Ventures</div>
+        </div>
+      </div>
+
+      <div class="rating-row">
+        <div class="stars"><span>★</span> 4.6</div>
+        <div class="rating-box"><div class="rating-badge">3+ <span style="font-size:14px; font-weight:700; opacity:0.7;">◎</span></div></div>
+        <div class="stars">↓ 28 MB</div>
+      </div>
+
+      <button class="install-btn">Install</button>
+
+      <div class="card-grid">
+        <div class="feature-card dark">
+          <div class="heading-box">Single Tap Naksha Banaye</div>
+          <div class="small-copy">Single tap naksha with PDF generation</div>
+          <div class="map-preview">
+            <div class="map-lines"></div>
+            <div class="plot-box"></div>
+          </div>
+        </div>
+
+        <div class="feature-card dark">
+          <div class="heading-box">Live Measurement</div>
+          <div class="small-copy">In Bigha, Hectare and Square meter</div>
+          <div class="measurement-preview">
+            <div class="measurement-grid"></div>
+            <div class="measurement-dots"></div>
+            <div class="ruler"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="about">
+        <div class="about-row">
+          <h2 class="about-title">About this app</h2>
+          <div class="arrow-right">→</div>
+        </div>
+
+        <div class="headline">Buy/Sell Land | Land Intelligence</div>
+
+        <div class="app-icons">
+          <div class="icon-item">
+            <div class="icon-box">🎮</div>
+            Games
+          </div>
+          <div class="icon-item">
+            <div class="icon-box">📱</div>
+            Apps
+          </div>
+          <div class="icon-item">
+            <div class="icon-box search">🔎</div>
+            Search
+          </div>
+          <div class="icon-item">
+            <div class="icon-box">📚</div>
+            Books
+          </div>
+          <div class="icon-item">
+            <div class="icon-box">👤</div>
+            You
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <div class="nav-icon">☰</div>
+      <div class="nav-icon center">◯</div>
+      <div class="nav-icon">‹</div>
+    </div>
+  </div>
+</body>
+</html>
